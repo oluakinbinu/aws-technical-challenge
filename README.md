@@ -3,4 +3,5 @@
 ## Introduction
 
 ## Architecture Diagram!
-[Screenshot 2024-03-20 at 6 38 39 PM](https://github.com/oluakinbinu/aws_technical_challenge/assets/154087956/cedd100e-c4b5-4cfa-b3bd-6a95be6b7a9b)
+
+![Screenshot 2024-03-21 at 11 10 27 AM](https://github.com/oluakinbinu/aws_technical_challenge/assets/154087956/556324c0-9345-4f46-a885-23cd7de691b8)
