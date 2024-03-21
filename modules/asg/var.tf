@@ -1,0 +1,11 @@
+variable "instance_ami" {}
+variable "instance_type" {}
+variable "device_name" {}
+variable "instance_root_device_size" {}
+variable "sg-LB01" {}
+variable "sg-servers" {}
+variable "name" {}
+variable "env" {}
+variable "vpc" {}
+variable "private-eu-west-1a" {}
+variable "private-eu-west-1b" {}
