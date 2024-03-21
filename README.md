@@ -1,5 +1,7 @@
 # aws_technical_challenge
 
+
+
 ## Introduction
 
 This project aims to construct a proof-of-concept AWS environment managed via Terraform, emphasizing infrastructure as code. The design includes a VPC with four subnets across two availability zones, ensuring both internet-accessible and isolated subnets. The configuration features an EC2 instance with Red Hat Linux in one of the internet-facing subnets and an auto-scaling group across the private subnets, with a focus on automated Apache web server deployment. Additionally, an application load balancer will manage HTTP traffic, underpinned by security groups that define traffic rules. The project also incorporates an S3 bucket with lifecycle policies for efficient data management. Upon completion, documentation and the GitHub repository link will be sent to the recruitment point of contact, with an open channel for any immediate queries or issues.
@@ -12,38 +14,29 @@ This project aims to construct a proof-of-concept AWS environment managed via Te
 
 ![Screenshot 2024-03-21 at 12 06 03 PM](https://github.com/oluakinbinu/aws_technical_challenge/assets/154087956/f335c6ab-d827-42cb-a45f-de1ca153dd79)
 
-##Base_modules 
-The base modules form the foundational infrastructure for a scalable networking layer, encompassing VPC, subnets, private routes, IGWs, and EIPs.
 
-`modules/base_modules/vpc`:
- 
-This module defines an AWS VPC resource, specifying its CIDR block and applying both predefined and dynamic tags for easy identification and management.
+## Modules
 
-`modules/base_modules/sub`:
+###  Virtual Private Cloud (VPC)
 
-This module establishes an AWS subnet within a specified VPC, assigning it to an availability zone and defining its CIDR block. It also merges predefined tags with a dynamic "Name" tag for streamlined organization and identification.
+A VPC (Virtual Private Cloud) enables you to launch and manage a private, isolated section of the cloud where you can run resources in a network you define. It combines security with scalability and customization, allowing for secure hosting of applications, creation of complex network architectures, and connection to your on-premise networks.
 
-`modules/base_modules/igw`:
+'modules/vpc/1-VPC.tf'
 
-This modules creates an Internet Gateway (IGW) which is a critical component that enables communication between instances in an AWS VPC and the internet. It allows resources within the VPC to send and receive traffic from the internet, facilitating both inbound and outbound internet connectivity.
+This module defines an AWS Virtual Private Cloud (VPC) resource, which is a segment of a cloud network in AWS where you can launch AWS resources. The cidr_block attribute specifies the IP address range for the VPC, determined by the variable var.cidr_block_range. It also applies tags to the VPC for identification and organization, using variables for dynamic naming based on environment and a generic name prefix.
 
-`modules/base_modules/nat`:
+```hcl
+resource "aws_vpc" "vpc" {
+  cidr_block = var.cidr_block_range
 
-This module creates an AWS NAT Gateway, positioned within a specified subnet and utilizing a designated Elastic IP allocation ID for external connectivity. It incorporates merged tags for efficient resource identification and management. The creation of this NAT Gateway is contingent on the prior establishment of an Internet Gateway (IGW), ensuring a structured network flow for instances in private subnets to access the internet securely.
- 
-`modules/base_modules/eip`:
+  tags = {
+    Name = "${var.name}-vpc"
+    env = "${var.env}-env"
+  }
+}
 
-This module provisions an AWS Elastic IP (EIP) within the VPC domain, applying merged tags for streamlined resource tracking and management. It assigns a static public IP address to ensure consistent internet access for associated resources.
+'modules/vpc/1-Subnets.tf'
 
-`modules/base_modules/public_route`:
-
-This module sets up an AWS Route Table for a specified VPC, defining a route that directs traffic from within the VPC to the internet via an Internet Gateway (IGW),which will be used in for the public subnets. It utilizes merged tags, including a custom "Name" tag, for effective resource identification and organization.
-
-`modules/base_modules/private_route`:
-
-This module creates an AWS Route Table associated with a specific VPC. It configures a route that allows traffic from the VPC to reach the internet through a NAT Gateway, using a specified CIDR block. The setup includes merged tags for improved resource identification, with a "Name" tag for easy reference.
-
-## Modules 
 
 These groups of modules is designed to deploy scalable AWS infrastructure components seamlessly. Each module targets a specific AWS resource, enabling a customized and efficient cloud environment.
 
