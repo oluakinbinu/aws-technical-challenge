@@ -305,6 +305,193 @@ resource "aws_instance" "app" {
 
 `Usage:` Ensures efficient resource utilization and consistent application performance during varying loads.
 
+The autoscaling module is structured across three distinct files: autoscaling group, target groups, and launch template.
+
+'modules/asg/AutoScalingGroup.tf'
+```hcl
+# Resource definition for an AWS Auto Scaling Group.
+resource "aws_autoscaling_group" "asg" {
+  name_prefix           = "${var.name}-auto-scaling-group" # Name prefix for the auto scaling group.
+  min_size              = 3 # Minimum number of instances in the group.
+  max_size              = 15 # Maximum number of instances in the group.
+  desired_capacity      = 6 # Desired number of instances in the group.
+  vpc_zone_identifier   = [var.private-eu-west-1a, var.private-eu-west-1b] # Subnets for the instances.
+  health_check_type     = "ELB" # Type of health check.
+  health_check_grace_period = 300 # Time before health check starts.
+  force_delete          = true # Force delete new instances upon ASG deletion.
+  target_group_arns     = [aws_lb_target_group.tg.arn] # Target group for load balancing.
+
+  # Configuration for the launch template.
+  launch_template {
+    id      = aws_launch_template.lt.id # Launch template ID.
+    version = "$Latest" # Version of the launch template to use.
+  }
+
+  # Metrics to be collected.
+  enabled_metrics = ["GroupMinSize", "GroupMaxSize", "GroupDesiredCapacity", "GroupInServiceInstances", "GroupTotalInstances"]
+
+  # Initial lifecycle hook for instance launching.
+  initial_lifecycle_hook {
+    name                  = "instance-protection-launch"
+    lifecycle_transition  = "autoscaling:EC2_INSTANCE_LAUNCHING"
+    default_result        = "CONTINUE"
+    heartbeat_timeout     = 60
+    notification_metadata = "{\"key\":\"value\"}"
+  }
+
+  # Initial lifecycle hook for instance terminating.
+  initial_lifecycle_hook {
+    name                  = "scale-in-protection"
+    lifecycle_transition  = "autoscaling:EC2_INSTANCE_TERMINATING"
+    default_result        = "CONTINUE"
+    heartbeat_timeout     = 300
+  }
+
+  # Tags to propagate to each instance at launch.
+  tag {
+    key                 = "Name"
+    value               = "${var.name}-asg"
+    propagate_at_launch = true
+  }
+
+  tag {
+    key                 = "Environment"
+    value               = "${var.env}-env"
+    propagate_at_launch = true
+  }
+}
+
+# Defines an Auto Scaling Policy for CPU utilization.
+resource "aws_autoscaling_policy" "scaling_policy" {
+  name                   = "${var.name}-cpu-target" # Policy name.
+  autoscaling_group_name = aws_autoscaling_group.asg.name # Associated ASG.
+
+  policy_type = "TargetTrackingScaling" # Policy type for target tracking.
+  estimated_instance_warmup = 120 # Warm-up time for new instances.
+
+  # Configuration for tracking CPU utilization.
+  target_tracking_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = "ASGAverageCPUUtilization"
+    }
+    target_value = 75.0 # Target CPU utilization percentage.
+  }
+}
+
+# Attaches the Auto Scaling group to a target group for load balancing.
+resource "aws_autoscaling_attachment" "app1_asg_attachment" {
+  autoscaling_group_name = aws_autoscaling_group.asg.name
+  lb_target_group_arn    = aws_lb_target_group.tg.arn
+}
+
+```
+
+'modules/asg/launchtemplate.tf'
+```hcl
+# AWS Launch Template Configuration
+resource "aws_launch_template" "lt" {
+  # Defines a prefix for the launch template name, incorporating a variable for dynamic naming.
+  name_prefix   = "${var.name}-LT"
+
+  # Specifies the AMI ID and instance type for instances launched using this template.
+  image_id      = var.instance_ami
+  instance_type = var.instance_type 
+
+  # Optional: Specify the key name for SSH access to the instances.
+
+  # Configures the block device mapping for the instance's root volume.
+  block_device_mappings {
+    device_name = var.device_name
+
+    ebs {
+      volume_size = var.instance_root_device_size
+    }
+  }
+
+  # Associates the launch template with specific security groups.
+  vpc_security_group_ids = [var.sg-servers]
+
+  # User data script to automate software installation and setup upon instance launch.
+  user_data = base64encode(<<-EOF
+    #!/bin/bash
+    yum update -y
+    yum install -y httpd
+    systemctl start httpd
+    systemctl enable httpd
+  EOF
+  )
+
+  # Applies tagging specifications to instances launched from this template for organization and tracking.
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "${var.name}-app"
+      env = "${var.env}-env"
+    }
+  }
+
+  # Ensures that a new launch template version is created before the old one is destroyed during updates.
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+```
+
+'modules/asg/TargetGroupx.tf'
+```hcl
+resource "aws_launch_template" "lt" {
+  # Sets a prefix for the launch template name, dynamically appending the provided variable.
+  name_prefix   = "${var.name}-LT"
+
+  # Specifies the AMI ID for instances launched from this template.
+  image_id      = var.instance_ami
+
+  # Defines the instance type for instances to be launched.
+  instance_type = var.instance_type
+  
+  # Uncomment to specify a key pair for SSH access.
+  ## key_name = "MyLinuxBox"
+
+  # Configures block device mappings for the root device.
+  block_device_mappings {
+    device_name = var.device_name
+
+    ebs {
+      volume_size = var.instance_root_device_size
+    }
+  }
+
+  # Specifies the security groups that instances will belong to.
+  vpc_security_group_ids = [var.sg-servers]
+
+  # User data script to run commands on instance launch. Here, it updates and installs an HTTP server.
+  user_data = base64encode(<<-EOF
+    #!/bin/bash
+    yum update -y
+    yum install -y httpd
+    systemctl start httpd
+    systemctl enable httpd
+  EOF
+  )
+
+  # Applies tags to instances launched from this template.
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "${var.name}-app"
+      env  = "${var.env}-env"
+    }
+  }
+
+  # Ensures that a new launch template is created before destroying the old one during updates.
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+```
+
 ###  LB Module
 
 `Purpose:` Establishes a Load Balancer to distribute incoming application traffic across multiple EC2 instances.
@@ -373,13 +560,6 @@ S3 Buckets Module
 `Usage:` Ideal for storing application data, backups, and static content.
 
 'modules/s3/01-S3.tf'
-
-S3 Buckets Module
-
-`Purpose:` Configures Amazon S3 buckets for scalable and secure object storage.
-
-`Usage:` Ideal for storing application data, backups, and static content.
-
 
 ```hcl
 # Creates an AWS S3 bucket with a specific name for storing static project files. Tags the bucket for easy identification.
@@ -468,6 +648,96 @@ locals {
   s3_name2 = "${var.s3_name2}-${random_id.s3name.hex}"
 }
 ```
+
+#main.tf
+
+
+```hcl
+# EC2 Instance Module: Configures and launches an EC2 instance with specified attributes such as name, environment, instance size, AMI, subnet, root device size, and security group.
+module "ec2_app" {
+   source = "./modules/ec2"
+   name = var.name
+   env = var.env
+   instance_size = var.instance_size
+   instance_ami = var.instance_ami
+   subnet = module.vpc.public-eu-west-1b
+   instance_root_device_size = var.instance_root_device_size
+   sg = module.sg.sg-servers
+}
+
+# S3 Module: Sets up two S3 buckets with specified names.
+module "s3" {
+   source = "./modules/s3"
+   s3_name = var.s3_name
+   s3_name2 = var.s3_name2
+}
+
+# VPC Module: Creates a Virtual Private Cloud with a specified CIDR block range and sets up four subnets.
+module "vpc" {
+   source = "./modules/vpc"   
+   cidr_block_range = var.cidr_block_range
+   sub1 = var.sub1
+   sub2 = var.sub2
+   sub3 = var.sub3
+   sub4 = var.sub4
+   name = var.name
+   env = var.env
+   az1 = var.az1
+   az2 = var.az2
+}
+
+# NAT Module: Configures a NAT gateway with associated Elastic IP, Internet Gateway, and subnets for both public and private network access.
+module "nat" {
+   source = "./modules/nat"   
+   name = var.name
+   env = var.env
+   vpc = module.vpc.vpc
+   eip_option = var.eip_option
+   igw = module.vpc.igw
+   public-eu-west-1a = module.vpc.public-eu-west-1a
+   public-eu-west-1b = module.vpc.public-eu-west-1b
+   private-eu-west-1a = module.vpc.private-eu-west-1a
+   private-eu-west-1b = module.vpc.private-eu-west-1b
+   public_cidr_block = var.public_cidr_block
+}
+
+# Security Group Module: Creates security groups within the VPC for managing access to resources.
+module "sg" {
+   source =  "./modules/sg"  
+   name = var.name
+   env = var.env
+   vpc = module.vpc.vpc
+   public_cidr_block = var.public_cidr_block
+}
+
+# Auto Scaling Group Module: Sets up an auto-scaling group for EC2 instances, including configuration for instance type, AMI, security groups, and networking.
+module "asg" {
+   source =  "./modules/asg"  
+   instance_ami = var.instance_ami
+   instance_type = var.instance_size
+   device_name = var.device_name
+   instance_root_device_size = var.instance_root_device_size
+   sg-LB01 = module.sg.sg-LB01
+   sg-servers = module.sg.sg-servers
+   name = var.name
+   env = var.env
+   vpc = module.vpc.vpc
+   private-eu-west-1a = module.vpc.private-eu-west-1a
+   private-eu-west-1b = module.vpc.private-eu-west-1b
+}
+
+# Load Balancer Module: Configures a load balancer with specified settings, including security groups, target groups, and associated subnets.
+module "lb" {
+   source =  "./modules/lb"  
+   name = var.name
+   env = var.env
+   public-eu-west-1a = module.vpc.public-eu-west-1a
+   public-eu-west-1b = module.vpc.public-eu-west-1b
+   sg-LB01 = module.sg.sg-LB01
+   target_group = module.asg.target_group
+}
+
+``
 
 
 
