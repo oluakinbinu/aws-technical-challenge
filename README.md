@@ -750,3 +750,11 @@ module "lb" {
 }
 
 ```
+
+
+## Referenced used 
+https://access.redhat.com/solutions/15356#us_west_1_rhel9
+https://registry.terraform.io/modules/terraform-aws-modules/vpc/aws/latest
+https://access.redhat.com/documentation/en-us/jboss_enterprise_application_platform/6.3/html/administration_and_configuration_guide/install_the_apache_httpd_in_red_hat_enterprise_linux_with_jboss_eap_6_rpm
+https://stackoverflow.com/questions/63979469/terraform-code-to-delete-objects-in-the-bucket-after-10-days
+https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_lifecycle_configuration
