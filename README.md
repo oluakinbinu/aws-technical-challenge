@@ -8,4 +8,16 @@ This project aims to construct a proof-of-concept AWS environment managed via Te
 
 ![Screenshot 2024-03-21 at 11 10 27 AM](https://github.com/oluakinbinu/aws_technical_challenge/assets/154087956/556324c0-9345-4f46-a885-23cd7de691b8)
 
+##File Tree
+![Screenshot 2024-03-21 at 12 06 03 PM](https://github.com/oluakinbinu/aws_technical_challenge/assets/154087956/f335c6ab-d827-42cb-a45f-de1ca153dd79)
 
+##Base_modules 
+The base modules form the foundational infrastructure for a scalable networking layer, encompassing VPC, subnets, private routes, IGWs, and EIPs.
+
+ `modules/base_modules/vpc`:
+ 
+This module defines an AWS VPC resource, specifying its CIDR block and applying both predefined and dynamic tags for easy identification and management.
+
+ `modules/base_modules/sub`:
+
+This module establishes an AWS subnet within a specified VPC, assigning it to an availability zone and defining its CIDR block. It also merges predefined tags with a dynamic "Name" tag for streamlined organization and identification.
