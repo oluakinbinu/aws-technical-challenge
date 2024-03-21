@@ -13,6 +13,10 @@ This project aims to construct a proof-of-concept AWS environment managed via Te
 ##File Tree
 ![Screenshot 2024-03-21 at 12 06 03 PM](https://github.com/oluakinbinu/aws_technical_challenge/assets/154087956/8a8a8daf-91ac-42c5-9082-8ff35720a9f9)
 
+## Login to the stand-alone EC2 instance in sub2 and take a screenshot of the terminal while logged in.
+
+![Screenshot 2024-03-21 at 6 48 29 PM](https://github.com/oluakinbinu/aws_technical_challenge/assets/154087956/6d192e92-44ba-4c49-be2a-aaf2d09633d2)
+
 ## Modules
 
 ###  Virtual Private Cloud (VPC) Module
@@ -738,6 +742,13 @@ module "lb" {
 }
 
 ``
+
+##Result
+
+Accessing Loadbalancer from Port 80 to view static homepage
+
+![Screenshot 2024-03-21 at 6 50 36 PM](https://github.com/oluakinbinu/aws_technical_challenge/assets/154087956/72ac94fb-50bb-46a7-8fd0-02ae8b7ee09d)
+
 
 
 
