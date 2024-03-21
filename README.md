@@ -9,15 +9,32 @@ This project aims to construct a proof-of-concept AWS environment managed via Te
 ![Screenshot 2024-03-21 at 11 10 27 AM](https://github.com/oluakinbinu/aws_technical_challenge/assets/154087956/556324c0-9345-4f46-a885-23cd7de691b8)
 
 ##File Tree
+
 ![Screenshot 2024-03-21 at 12 06 03 PM](https://github.com/oluakinbinu/aws_technical_challenge/assets/154087956/f335c6ab-d827-42cb-a45f-de1ca153dd79)
 
 ##Base_modules 
 The base modules form the foundational infrastructure for a scalable networking layer, encompassing VPC, subnets, private routes, IGWs, and EIPs.
 
- `modules/base_modules/vpc`:
+`modules/base_modules/vpc`:
  
 This module defines an AWS VPC resource, specifying its CIDR block and applying both predefined and dynamic tags for easy identification and management.
 
- `modules/base_modules/sub`:
+`modules/base_modules/sub`:
 
 This module establishes an AWS subnet within a specified VPC, assigning it to an availability zone and defining its CIDR block. It also merges predefined tags with a dynamic "Name" tag for streamlined organization and identification.
+
+`modules/base_modules/igw`:
+This modules creates an Internet Gateway (IGW) which is a critical component that enables communication between instances in an AWS VPC and the internet. It allows resources within the VPC to send and receive traffic from the internet, facilitating both inbound and outbound internet connectivity.
+
+`modules/base_modules/nat`:
+This module creates an AWS NAT Gateway, positioned within a specified subnet and utilizing a designated Elastic IP allocation ID for external connectivity. It incorporates merged tags for efficient resource identification and management. The creation of this NAT Gateway is contingent on the prior establishment of an Internet Gateway (IGW), ensuring a structured network flow for instances in private subnets to access the internet securely.
+ 
+`modules/base_modules/eip`:
+This module provisions an AWS Elastic IP (EIP) within the VPC domain, applying merged tags for streamlined resource tracking and management. It assigns a static public IP address to ensure consistent internet access for associated resources.
+
+`modules/base_modules/public_route`:
+This module sets up an AWS Route Table for a specified VPC, defining a route that directs traffic from within the VPC to the internet via an Internet Gateway (IGW),which will be used in for the public subnets. It utilizes merged tags, including a custom "Name" tag, for effective resource identification and organization.
+
+`modules/base_modules/private_route`:
+This module creates an AWS Route Table associated with a specific VPC. It configures a route that allows traffic from the VPC to reach the internet through a NAT Gateway, using a specified CIDR block. The setup includes merged tags for improved resource identification, with a "Name" tag for easy reference.
+
