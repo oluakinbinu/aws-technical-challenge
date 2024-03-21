@@ -34,10 +34,110 @@ resource "aws_vpc" "vpc" {
     env = "${var.env}-env"
   }
 }
+```
 
 'modules/vpc/1-Subnets.tf'
 
+This Terraform configuration defines and creates four subnets within a specified AWS VPC (Virtual Private Cloud). Two of these subnets are public (accessible from the internet), each in a different availability zone (eu-west-1a and eu-west-1b), with automatic public IP assignment enabled. The other two subnets are private (not directly accessible from the internet), also each in one of the two mentioned availability zones. Each subnet is assigned a CIDR block (IP address range) and tagged with a name and environment for identification and management purposes.
 
+```hcl
+#These are   for  public
+
+resource "aws_subnet" "public-eu-west-1a" {
+  vpc_id                  = aws_vpc.vpc.id
+  cidr_block              = var.sub1
+  availability_zone       = var.az1
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "${var.name}-subnet1"
+    env = "${var.env}-env"
+  }
+}
+
+resource "aws_subnet" "public-eu-west-1b" {
+  vpc_id                  = aws_vpc.vpc.id
+  cidr_block              = var.sub2
+  availability_zone       = var.az2
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "${var.name}-subnet2"
+    env = "${var.env}-env"
+  }
+}
+
+
+#these are for private
+resource "aws_subnet" "private-eu-west-1a" {
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = var.sub3
+  availability_zone = var.az1
+
+  tags = {
+    Name = "${var.name}-subnet"
+    env = "${var.env}-env3"
+  }
+}
+
+resource "aws_subnet" "private-eu-west-1b" {
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = var.sub4
+  availability_zone = var.az2
+
+  tags = {
+    Name = "${var.name}-subnet"
+    env = "${var.env}-env4"
+  }
+}
+```
+'modules/vpc/3-IGW.tf'
+
+This Terraform configuration creates an AWS Internet Gateway and associates it with a specific Virtual Private Cloud (VPC) identified by aws_vpc.vpc.id. The Internet Gateway facilitates communication between the VPC and the internet. It is tagged with a name and environment for easy identification and management.
+
+```hcl
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.vpc.id
+
+  tags = {
+    Name = "${var.name}-igw"
+    env = "${var.env}-env"
+  }
+}
+```
+'modules/vpc/var.tf.tf'
+
+Within the `'var.tf' file, individual variables are defined to serve as inputs for the modules.
+
+```hcl
+# Defines the overall CIDR block range for the VPC. This determines the IP address range available for all subnets within the VPC.
+variable "cidr_block_range" {}
+
+# Defines the CIDR block for the first subnet. This is typically a subset of the VPC's CIDR block, designated for specific use within the VPC.
+variable "sub1" {}
+
+# Defines the CIDR block for the second subnet, another subset of the VPC's CIDR block, potentially serving a different purpose or hosting different resources compared to sub1.
+variable "sub2" {}
+
+# Defines the CIDR block for the third subnet. This may be configured for a specific use case within the VPC, separate from the first two subnets.
+variable "sub3" {}
+
+# Defines the CIDR block for the fourth subnet. Like the others, this is a subset of the VPC's CIDR block, designated for its unique role within the VPC.
+variable "sub4" {}
+
+# Specifies the name to be used in naming resources. This allows for easier identification and management of resources within AWS.
+variable "name" {}
+
+# Defines the environment tag for resources. This is used to differentiate resources across various deployment environments (e.g., development, testing, production).
+variable "env" {}
+
+# Identifies the first availability zone in which resources may be deployed. Availability zones are isolated locations within data center regions from which public cloud services originate and operate.
+variable "az1" {}
+
+# Identifies the second availability zone for deploying resources, providing an option for redundancy and high availability across physical locations within a region.
+variable "az2" {}
+
+```
 These groups of modules is designed to deploy scalable AWS infrastructure components seamlessly. Each module targets a specific AWS resource, enabling a customized and efficient cloud environment.
 
 S3 Buckets Module
