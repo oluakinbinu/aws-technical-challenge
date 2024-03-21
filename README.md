@@ -24,17 +24,42 @@ This module defines an AWS VPC resource, specifying its CIDR block and applying 
 This module establishes an AWS subnet within a specified VPC, assigning it to an availability zone and defining its CIDR block. It also merges predefined tags with a dynamic "Name" tag for streamlined organization and identification.
 
 `modules/base_modules/igw`:
+
 This modules creates an Internet Gateway (IGW) which is a critical component that enables communication between instances in an AWS VPC and the internet. It allows resources within the VPC to send and receive traffic from the internet, facilitating both inbound and outbound internet connectivity.
 
 `modules/base_modules/nat`:
+
 This module creates an AWS NAT Gateway, positioned within a specified subnet and utilizing a designated Elastic IP allocation ID for external connectivity. It incorporates merged tags for efficient resource identification and management. The creation of this NAT Gateway is contingent on the prior establishment of an Internet Gateway (IGW), ensuring a structured network flow for instances in private subnets to access the internet securely.
  
 `modules/base_modules/eip`:
+
 This module provisions an AWS Elastic IP (EIP) within the VPC domain, applying merged tags for streamlined resource tracking and management. It assigns a static public IP address to ensure consistent internet access for associated resources.
 
 `modules/base_modules/public_route`:
+
 This module sets up an AWS Route Table for a specified VPC, defining a route that directs traffic from within the VPC to the internet via an Internet Gateway (IGW),which will be used in for the public subnets. It utilizes merged tags, including a custom "Name" tag, for effective resource identification and organization.
 
 `modules/base_modules/private_route`:
+
 This module creates an AWS Route Table associated with a specific VPC. It configures a route that allows traffic from the VPC to reach the internet through a NAT Gateway, using a specified CIDR block. The setup includes merged tags for improved resource identification, with a "Name" tag for easy reference.
 
+##Modules 
+This suite of Terraform modules is designed to deploy scalable AWS infrastructure components seamlessly. Each module targets a specific AWS resource, enabling a customized and efficient cloud environment.
+
+This suite of Terraform modules is designed to deploy scalable AWS infrastructure components seamlessly. Each module targets a specific AWS resource, enabling a customized and efficient cloud environment.
+
+S3 Buckets Module
+
+'Purpose:' Configures Amazon S3 buckets for scalable and secure object storage.
+'Usage:' Ideal for storing application data, backups, and static content.
+
+EC2 Instances Module
+
+Purpose: Provisions Amazon EC2 instances to offer scalable compute capacity.
+Usage: Use to deploy applications, run backend services, or host databases dynamically.
+Load Balancer (LB) Module
+Purpose: Establishes a Load Balancer to distribute incoming application traffic across multiple EC2 instances.
+Usage: Enhances application availability and fault tolerance.
+Auto Scaling Group (ASG) Module
+Purpose: Automates the scaling of EC2 instances, adjusting the number based on load.
+Usage: Ensures efficient resource utilization and consistent application performance during varying loads.
