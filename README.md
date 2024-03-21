@@ -11,6 +11,7 @@ This project aims to construct a proof-of-concept AWS environment managed via Te
 ![Screenshot 2024-03-21 at 11 10 27 AM](https://github.com/oluakinbinu/aws_technical_challenge/assets/154087956/556324c0-9345-4f46-a885-23cd7de691b8)
 
 ##File Tree
+
 ![Screenshot 2024-03-21 at 12 06 03 PM](https://github.com/oluakinbinu/aws_technical_challenge/assets/154087956/8a8a8daf-91ac-42c5-9082-8ff35720a9f9)
 
 ## Login to the stand-alone EC2 instance in sub2 and take a screenshot of the terminal while logged in.
