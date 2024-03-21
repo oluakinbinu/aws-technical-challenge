@@ -43,23 +43,21 @@ This module sets up an AWS Route Table for a specified VPC, defining a route tha
 
 This module creates an AWS Route Table associated with a specific VPC. It configures a route that allows traffic from the VPC to reach the internet through a NAT Gateway, using a specified CIDR block. The setup includes merged tags for improved resource identification, with a "Name" tag for easy reference.
 
-##Modules 
-This suite of Terraform modules is designed to deploy scalable AWS infrastructure components seamlessly. Each module targets a specific AWS resource, enabling a customized and efficient cloud environment.
-
-This suite of Terraform modules is designed to deploy scalable AWS infrastructure components seamlessly. Each module targets a specific AWS resource, enabling a customized and efficient cloud environment.
+## Modules 
 
 S3 Buckets Module
 
-'Purpose:' Configures Amazon S3 buckets for scalable and secure object storage.
-'Usage:' Ideal for storing application data, backups, and static content.
+`Purpose:` Configures Amazon S3 buckets for scalable and secure object storage.
+`Usage:` Ideal for storing application data, backups, and static content.
 
 EC2 Instances Module
+`Purpose:` Provisions Amazon EC2 instances to offer scalable compute capacity.
+`Usage:` Use to deploy applications, run backend services, or host databases dynamically.
 
-Purpose: Provisions Amazon EC2 instances to offer scalable compute capacity.
-Usage: Use to deploy applications, run backend services, or host databases dynamically.
 Load Balancer (LB) Module
-Purpose: Establishes a Load Balancer to distribute incoming application traffic across multiple EC2 instances.
-Usage: Enhances application availability and fault tolerance.
+`Purpose:` Establishes a Load Balancer to distribute incoming application traffic across multiple EC2 instances.
+`Usage:` Enhances application availability and fault tolerance.
+
 Auto Scaling Group (ASG) Module
-Purpose: Automates the scaling of EC2 instances, adjusting the number based on load.
-Usage: Ensures efficient resource utilization and consistent application performance during varying loads.
+`Purpose:` Automates the scaling of EC2 instances, adjusting the number based on load.
+`Usage:` Ensures efficient resource utilization and consistent application performance during varying loads.
