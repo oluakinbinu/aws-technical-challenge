@@ -249,14 +249,17 @@ output "sg-LB01" {
 
 ###  EC2 Module
 
+EC2 Instances Module
+
+`Purpose:` Provisions Amazon EC2 instances to offer scalable compute capacity.
+
+`Usage:` Use to deploy applications, run backend services, or host databases dynamically.
 
 ###  LB Module
 
 ###  ASG Module
 
-
-
-These groups of modules is designed to deploy scalable AWS infrastructure components seamlessly. Each module targets a specific AWS resource, enabling a customized and efficient cloud environment.
+###  S3 Module
 
 S3 Buckets Module
 
@@ -264,13 +267,77 @@ S3 Buckets Module
 
 `Usage:` Ideal for storing application data, backups, and static content.
 
-EC2 Instances Module
+'modules/s3/01-S3.tf'
 
-`Purpose:` Provisions Amazon EC2 instances to offer scalable compute capacity.
+S3 Buckets Module
 
-`Usage:` Use to deploy applications, run backend services, or host databases dynamically.
+`Purpose:` Configures Amazon S3 buckets for scalable and secure object storage.
+
+`Usage:` Ideal for storing application data, backups, and static content.
+
+
+```hcl
+# Creates an AWS S3 bucket with a specific name for storing static project files. Tags the bucket for easy identification.
+resource "aws_s3_bucket" "s3" {
+  bucket = local.s3_name  # Bucket name from local variables
+
+  tags = {
+    Name        = "static-project"  # Name tag for the bucket
+    Environment = "Dev"             # Environment tag, indicating this bucket is used in development
+  }
+}
+
+# Creates a second AWS S3 bucket with another specific name, following the same tagging convention as the first.
+resource "aws_s3_bucket" "s32" {
+  bucket = local.s3_name2  # Second bucket name from local variables
+
+  tags = {
+    Name        = "static-project"  # Same naming convention for consistency
+    Environment = "Dev"             # Indicates this is also a development environment resource
+  }
+}
+
+# Configures a lifecycle rule for the first S3 bucket to automatically expire (delete) all files in a specific folder after 90 days.
+resource "aws_s3_bucket_lifecycle_configuration" "l1" {
+  bucket = local.s3_name  # Applies to the first bucket
+
+  rule {
+    status = "Enabled"  # Rule is active
+    id     = "expire_all_files"  # Identifies the purpose of the rule
+    expiration {
+        days = 90  # Number of days after which files are expired
+    }
+    filter {
+      and {
+        prefix = "log/"  # Targets files in the "log/" folder
+
+        tags = {
+          rule      = "log"
+          autoclean = "true"  # Tags to further specify and identify rule application
+        }
+      }
+    }
+  }
+}
+
+# Sets up a lifecycle configuration for the second S3 bucket to transition files to the GLACIER storage class after 90 days, optimizing for cost and access patterns.
+resource "aws_s3_bucket_lifecycle_configuration" "bucket-config" {
+   bucket = local.s3_name2  # Applies to the second bucket
+
+   rule {
+     id = "images"  # Identifies the rule focus on image files
+     status = "Enabled"  # Rule is active
+
+     transition {
+       days          = 90  # Timeframe after which to transition files
+       storage_class = "GLACIER"  # Moves files to colder storage for cost efficiency
+     }
+   }
+}
+``
 
 Load Balancer (LB) Module
+
 
 `Purpose:` Establishes a Load Balancer to distribute incoming application traffic across multiple EC2 instances.
 
