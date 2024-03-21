@@ -17,7 +17,7 @@ This project aims to construct a proof-of-concept AWS environment managed via Te
 
 ## Modules
 
-###  Virtual Private Cloud (VPC)
+###  Virtual Private Cloud (VPC) Module
 
 A VPC (Virtual Private Cloud) enables you to launch and manage a private, isolated section of the cloud where you can run resources in a network you define. It combines security with scalability and customization, allowing for secure hosting of applications, creation of complex network architectures, and connection to your on-premise networks.
 
@@ -105,7 +105,7 @@ resource "aws_internet_gateway" "igw" {
   }
 }
 ```
-'modules/vpc/var.tf.tf'
+'modules/vpc/var.tf'
 
 Within the `'var.tf' file, individual variables are defined to serve as inputs for the modules.
 
@@ -138,6 +138,124 @@ variable "az1" {}
 variable "az2" {}
 
 ```
+
+'modules/vpc/output.tf'
+
+The 'output.tf'generates outputs, such as VPC and subnet IDs, which are referenced in other configurations to enhance module reusability, enabling seamless integration with autoscaling groups and load balancers modules.
+
+```hcl
+# Outputs the ID of the public subnet in the eu-west-1a availability zone. Used for referencing this subnet in other configurations.
+output "public-eu-west-1a" {
+  value = aws_subnet.public-eu-west-1a.id
+}
+
+# Outputs the ID of the public subnet in the eu-west-1b availability zone. Allows for identification and use in subsequent configurations.
+output "public-eu-west-1b" {
+  value = aws_subnet.public-eu-west-1b.id
+}
+
+# Outputs the ID of the private subnet in the eu-west-1a availability zone. Essential for referencing the subnet in further cloud infrastructure setups.
+output "private-eu-west-1a" {
+  value = aws_subnet.private-eu-west-1a.id
+}
+
+# Outputs the ID of the private subnet in the eu-west-1b availability zone. Enables this subnet's ID to be utilized in additional configurations.
+output "private-eu-west-1b" {
+  value = aws_subnet.private-eu-west-1b.id
+}
+
+# Outputs the ID of the VPC. This is crucial for linking various resources and services within the same Virtual Private Cloud.
+output "vpc"{
+  value = aws_vpc.vpc.id
+}
+
+# Outputs the ID of the Internet Gateway. This ID is important for configurations that require internet connectivity through this gateway.
+output "igw"{
+  value = aws_internet_gateway.igw.id
+}
+
+```
+
+###  Security Group Module
+
+In the security group module, a security group will be established for the server layer, enabling HTTPS access through port 80 from a specified CIDR block. For demonstration purposes, 0.0.0.0/16 will be used, though it is recommended to utilize corporate IP addresses in production environments for enhanced security.
+
+'modules/sg/sg.tf'
+```hcl
+
+# This resource defines a security group for server layer within the specified VPC.
+resource "aws_security_group" "sg-servers" {
+  # Names the security group using a variable for easy identification.
+  name        = "${var.name}-sg-servers"
+  # Provides a description for the security group, again using a variable for clarity and consistency.
+  description = "${var.name}-sg-servers"
+  # Associates the security group with a VPC specified by a variable.
+  vpc_id      = var.vpc
+
+  # Defines an ingress rule for HTTP traffic.
+  ingress {
+    description = "MyHomePage"          # A description of the ingress rule for clarity.
+    from_port   = 80                    # The starting port of the range; here, it specifies port 80 for HTTP.
+    to_port     = 80                    # The ending port of the range; matching from_port as it's a single port.
+    protocol    = "tcp"                 # Specifies the protocol used, in this case, TCP for HTTP traffic.
+    cidr_blocks = [var.public_cidr_block] # The CIDR blocks from which traffic is allowed, specified by a variable.
+  }
+
+  # Defines an ingress rule for SSH access.
+  ingress {
+    description = "SSH"                 # A description of the ingress rule for SSH access.
+    from_port   = 22                    # The starting port for SSH traffic.
+    to_port     = 22                    # The ending port for SSH traffic, same as from_port for a single port.
+    protocol    = "tcp"                 # Specifies the protocol, TCP, for SSH traffic.
+    cidr_blocks = [var.public_cidr_block] # The CIDR blocks allowed for SSH access, specified by a variable.
+  }
+}
+```
+
+'modules/sg/var.tf'
+
+Variables defined in the 'var.tf' file serve as inputs for configuring the security groups.
+
+```hcl
+
+# Defines a unique identifier or name for resources, facilitating easier identification and management within AWS.
+variable "name" {}
+
+# Specifies the environment (e.g., development, staging, production) to which the resources belong, aiding in resource organization and management.
+variable "env" {}
+
+# Holds the ID of the VPC (Virtual Private Cloud) within which the resources will be created, ensuring proper network isolation and segmentation.
+variable "vpc" {}
+
+# Contains the CIDR block for public access, determining the IP address range that can interact with certain resources, particularly for defining ingress rules.
+variable "public_cidr_block" {}
+```
+
+'modules/sg/output.tf'
+
+The 'output.tf'generates outputs, such as security group IDs, which are referenced in other configurations to enhance module reusability,
+
+```hcl
+# Output declaration for the server security group ID. This allows other configurations to reference the security group's unique identifier.
+output "sg-servers" {
+    value = aws_security_group.sg-servers.id
+}
+
+# Output declaration for the load balancer security group ID. Enables the ID to be referenced in subsequent configurations, facilitating integration with other AWS resources.
+output "sg-LB01" {
+    value = aws_security_group.sg-LB01.id
+}
+```
+
+###  EC2 Module
+
+
+###  LB Module
+
+###  ASG Module
+
+
+
 These groups of modules is designed to deploy scalable AWS infrastructure components seamlessly. Each module targets a specific AWS resource, enabling a customized and efficient cloud environment.
 
 S3 Buckets Module
