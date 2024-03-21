@@ -11,9 +11,7 @@ This project aims to construct a proof-of-concept AWS environment managed via Te
 ![Screenshot 2024-03-21 at 11 10 27 AM](https://github.com/oluakinbinu/aws_technical_challenge/assets/154087956/556324c0-9345-4f46-a885-23cd7de691b8)
 
 ##File Tree
-
-![Screenshot 2024-03-21 at 12 06 03 PM](https://github.com/oluakinbinu/aws_technical_challenge/assets/154087956/f335c6ab-d827-42cb-a45f-de1ca153dd79)
-
+![Screenshot 2024-03-21 at 12 06 03 PM](https://github.com/oluakinbinu/aws_technical_challenge/assets/154087956/8a8a8daf-91ac-42c5-9082-8ff35720a9f9)
 
 ## Modules
 
@@ -649,8 +647,10 @@ locals {
 }
 ```
 
+
 #main.tf
 
+To ensure cohesive deployment of the infrastructure, a main.tf file was created, aggregating and referencing all established variables.
 
 ```hcl
 # EC2 Instance Module: Configures and launches an EC2 instance with specified attributes such as name, environment, instance size, AMI, subnet, root device size, and security group.
