@@ -632,8 +632,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "bucket-config" {
 
 'modules/s3/var.tf'
 
-```hcl
+
 Variables defined in the 'var.tf' file serve as inputs for configuring the s3 bucket configurations
+```hcl
 # Define a variable for the first S3 bucket name. You can uncomment the default line to provide a default name.
 variable "s3_name" {
   type    = string
@@ -748,13 +749,4 @@ module "lb" {
    target_group = module.asg.target_group
 }
 
-``
-
-
-
-
-
-
-
-
-
+```
