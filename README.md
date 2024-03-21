@@ -255,9 +255,114 @@ EC2 Instances Module
 
 `Usage:` Use to deploy applications, run backend services, or host databases dynamically.
 
-###  LB Module
+'modules/ec2/main.tf'
+
+```hcl
+# Define an AWS EC2 instance resource named 'app'.
+resource "aws_instance" "app" {
+  # The Amazon Machine Image (AMI) ID to use for the instance. This determines the OS and initial state of the instance.
+  ami           = var.instance_ami
+
+  # The type of instance to start. This defines the hardware of the host computer used for your instance.
+  instance_type = var.instance_size
+
+  # The ID of the subnet to launch the instance in. Determines the networking and location within the AWS infrastructure.
+  subnet_id     = var.subnet
+
+  # A list of security group IDs to assign to the instance for controlling access to and from the instance.
+  vpc_security_group_ids = [var.sg]
+
+  # The key name of the Key Pair to use for the instance; this enables SSH access to the instance.
+  key_name = "RedHatVM"
+  
+  # User data script to run on instance startup. This script updates the system, installs, starts, and enables the Apache web server.
+  user_data = base64encode(<<-EOF
+    #!/bin/bash
+    dnf update -y
+    dnf install -y httpd
+    systemctl start httpd
+    systemctl enable httpd
+  EOF
+  )
+
+  # Configuration block for the root block device, or the instance's primary storage device.
+  root_block_device {
+    volume_size = var.instance_root_device_size # The size of the volume in gigabytes.
+    volume_type = "gp3" # The type of volume. gp3 is a type of SSD.
+  }
+
+  # A map of tags to assign to the resource. Useful for naming and organizing resources within AWS.
+  tags = {
+    Name = "${var.name}-ec2"
+    env = "${var.env}-env"
+  }
+}
+```
 
 ###  ASG Module
+
+`Purpose:` Automates the scaling of EC2 instances, adjusting the number based on load.
+
+`Usage:` Ensures efficient resource utilization and consistent application performance during varying loads.
+
+###  LB Module
+
+`Purpose:` Establishes a Load Balancer to distribute incoming application traffic across multiple EC2 instances.
+
+`Usage:` Enhances application availability and fault tolerance.
+
+'modules/lb/LoadBalancer.tf'
+
+```hcl
+# Defines an AWS Application Load Balancer (ALB) resource.
+resource "aws_lb" "alb" {
+  # Name of the load balancer, incorporating a variable for dynamic naming.
+  name               = "${var.name}-load-balancer"
+
+  # Specifies that the load balancer is internet-facing rather than internal.
+  internal           = false
+
+  # Sets the load balancer type to 'application', suitable for HTTP/HTTPS traffic.
+  load_balancer_type = "application"
+
+  # Associates the load balancer with security groups defined by a variable.
+  security_groups    = [var.sg-LB01]
+
+  # Assigns the load balancer to subnets, allowing it to receive traffic from these locations.
+  subnets            = [
+    var.public-eu-west-1a,
+    var.public-eu-west-1b,
+  ]
+
+  # Disables deletion protection, allowing the load balancer to be deleted without additional steps.
+  enable_deletion_protection = false
+
+  # Applies tags to the load balancer for identification and organization.
+  tags = {
+    Name = "${var.name}-lb"
+    env  = "${var.env}-env"
+  }
+}
+
+# Defines a listener for the AWS Application Load Balancer.
+resource "aws_lb_listener" "http" {
+  # Associates the listener with the previously defined ALB using its Amazon Resource Name (ARN).
+  load_balancer_arn = aws_lb.alb.arn
+
+  # Configures the listener to accept traffic on port 80, standard for HTTP.
+  port              = 80
+
+  # Sets the protocol for the listener to HTTP.
+  protocol          = "HTTP"
+
+  # Defines the default action for the listener. In this case, forwarding traffic to a target group specified by a variable.
+  default_action {
+    type             = "forward"
+    target_group_arn = var.target_group
+  }
+}
+```
+
 
 ###  S3 Module
 
@@ -334,17 +439,39 @@ resource "aws_s3_bucket_lifecycle_configuration" "bucket-config" {
      }
    }
 }
-``
+```
 
-Load Balancer (LB) Module
+'modules/s3/var.tf'
+
+```hcl
+Variables defined in the 'var.tf' file serve as inputs for configuring the s3 bucket configurations
+# Define a variable for the first S3 bucket name. You can uncomment the default line to provide a default name.
+variable "s3_name" {
+  type    = string
+  # default = "logs"
+}
+
+# Define a variable for the second S3 bucket name. The default name can be set by uncommenting the default line.
+variable "s3_name2" {
+  type    = string
+  # default = "images"
+}
+
+# Create a random ID to ensure unique bucket names, avoiding conflicts. The length of the ID is set to 8 bytes.
+resource "random_id" "s3name" {
+  byte_length = 8
+}
+
+# Using locals to construct unique S3 bucket names by appending the generated random ID to the variable values.
+locals {
+  s3_name = "${var.s3_name}-${random_id.s3name.hex}"
+  s3_name2 = "${var.s3_name2}-${random_id.s3name.hex}"
+}
+```
 
 
-`Purpose:` Establishes a Load Balancer to distribute incoming application traffic across multiple EC2 instances.
 
-`Usage:` Enhances application availability and fault tolerance.
 
-Auto Scaling Group (ASG) Module
 
-`Purpose:` Automates the scaling of EC2 instances, adjusting the number based on load.
 
-`Usage:` Ensures efficient resource utilization and consistent application performance during varying loads.
+
