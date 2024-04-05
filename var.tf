@@ -8,7 +8,7 @@ variable default_region {
 variable "name" {
   description = "name of application"
   type        = string
-  default     = "Coalfire"
+  default     = "app1"
 }
 
 variable "env" {
